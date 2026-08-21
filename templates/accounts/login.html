@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Login | CODEweave{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-lg-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="glass-card p-4 p-lg-5">
+                <div class="text-center mb-4">
+                    <div class="stat-card-icon mx-auto mb-3" style="background: rgba(99, 102, 241, 0.15); color: var(--accent-indigo);">
+                        <i class="fa-solid fa-user-lock"></i>
+                    </div>
+                    <h2 class="fw-extrabold text-white mb-1">Welcome Back</h2>
+                    <p class="text-secondary small">Sign in to continue your roadmap learning journey.</p>
+                </div>
+
+                <form id="loginForm" method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="username" class="form-label text-secondary small">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark bg-opacity-60 border-secondary border-opacity-25 text-secondary"><i class="fa-solid fa-user"></i></span>
+                            <input type="text" class="form-control form-control-glass" id="username" name="username" placeholder="Enter your username" required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="password" class="form-label text-secondary small">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark bg-opacity-60 border-secondary border-opacity-25 text-secondary"><i class="fa-solid fa-lock"></i></span>
+                            <input type="password" class="form-control form-control-glass" id="password" name="password" placeholder="Enter your password" required>
+                        </div>
+                    </div>
+                    <div id="loginMessage" class="alert d-none border-0 rounded-3 small"></div>
+                    <button type="submit" class="btn btn-indigo w-100 py-3 rounded-3 d-inline-flex align-items-center justify-content-center gap-2">
+                        <span>Sign In</span> <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <p class="text-center mt-4 mb-0 text-secondary small">
+                    Don’t have an account?
+                    <a href="/register/" class="text-indigo text-decoration-none fw-semibold">Create one here</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

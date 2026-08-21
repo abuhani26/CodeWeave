@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% block title %}Quiz Assessment | CODEweave{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="glass-card p-4 p-lg-5">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+                    <div>
+                        <span class="badge-glass-cyan mb-2 d-inline-block"><i class="fa-solid fa-pen-nib me-1"></i> Knowledge Assessment</span>
+                        <h2 class="fw-extrabold text-white mb-0" id="quizTitle">Loading Quiz...</h2>
+                    </div>
+                    <span class="badge-glass-emerald" id="quizStatus"><i class="fa-solid fa-circle-check me-1"></i> Ready</span>
+                </div>
+
+                <div id="quizQuestions" class="d-grid gap-4"></div>
+                
+                <div id="quizResultCard" class="d-none mt-4"></div>
+                <div id="quizMessage" class="alert d-none mt-4 border-0 rounded-3"></div>
+                
+                <div class="mt-4 pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center" id="quizActionFooter">
+                    <button onclick="window.history.back()" class="btn btn-glass px-4 rounded-3">
+                        <i class="fa-solid fa-arrow-left me-1"></i> Back
+                    </button>
+                    <button id="submitQuizBtn" class="btn btn-indigo px-4 py-2 rounded-3 d-inline-flex align-items-center gap-2">
+                        <span>Submit Answers</span> <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const quizId = window.location.pathname.split('/').filter(Boolean)[1];
+    const token = localStorage.getItem('accessToken');
+    let currentQuizData = null;
+
+    async function loadQuiz() {
+        const response = await fetch(`/api/quizzes/${quizId}/`);
+        const data = await response.json();
+        currentQuizData = data;
+        document.getElementById('quizTitle').textContent = data.title || 'Quiz';
+
+        const questions = data.questions || [];
+        const container = document.getElementById('quizQuestions');
+
+        if (!questions.length) {
+            container.innerHTML = '<div class="alert alert-dark border-0 glass-card text-secondary"><i class="fa-solid fa-info-circle me-2"></i>No questions available for this quiz.</div>';
+            return;
+        }
+
+        container.innerHTML = questions.map((question, index) => `
+            <div class="glass-card p-4 bg-dark bg-opacity-40 border border-secondary border-opacity-25">
+                <h5 class="fw-bold text-white mb-3 d-flex align-items-start gap-2">
+                    <span class="badge-glass-indigo text-xs" style="font-size: 0.8rem;">Q${index + 1}</span>
+                    <span>${escapeHtml(question.text)}</span>
+                </h5>
+                <div class="d-grid gap-2">
+                    ${question.choices.map(choice => `
+                        <label class="quiz-option-card" onclick="highlightChoice(this, 'question-${question.id}')">
+                            <input class="form-check-input mt-0 d-none" type="radio" name="question-${question.id}" value="${choice.id}">
+                            <div class="option-check-icon d-flex align-items-center justify-content-center rounded-circle border border-secondary border-opacity-50" style="width: 20px; height: 20px;">
+                                <i class="fa-solid fa-circle text-indigo micro-text opacity-0"></i>
+                            </div>
+                            <span class="text-primary small fw-medium">${escapeHtml(choice.text)}</span>
+                        </label>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function escapeHtml(value) {
+        const element = document.createElement('div');
+        element.textContent = value || '';
+        return element.innerHTML;
+    }
+
+    function highlightChoice(labelElement, groupName) {
+        document.querySelectorAll(`input[name="${groupName}"]`).forEach(input => {
+            const card = input.closest('.quiz-option-card');
+            if (card) {
+                card.classList.remove('selected');
+                const dot = card.querySelector('.option-check-icon i');
+                if (dot) dot.classList.add('opacity-0');
+            }
+        });
+        
+        labelElement.classList.add('selected');
+        const radio = labelElement.querySelector('input[type="radio"]');
+        if (radio) radio.checked = true;
+        const dot = labelElement.querySelector('.option-check-icon i');
+        if (dot) dot.classList.remove('opacity-0');
+    }
+
+    document.getElementById('submitQuizBtn').addEventListener('click', async () => {
+        const answers = [];
+        document.querySelectorAll('input[type="radio"]:checked').forEach((input) => {
+            const questionId = input.name.replace('question-', '');
+            answers.push({
+                question: Number(questionId),
+                choice: Number(input.value)
+            });
+        });
+
+        const resultCard = document.getElementById('quizResultCard');
+        const message = document.getElementById('quizMessage');
+        message.classList.add('d-none');
+
+        try {
+            const response = await fetch(`/api/quizzes/${quizId}/submit/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ answers })
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.detail || 'Failed to submit quiz');
+            }
+
+            const isPassed = Boolean(data.passed);
+            const isRoadmapCompleted = isPassed && !data.next_step_id;
+            const scoreVal = Number(data.score || 0).toFixed(1);
+            const totalQ = data.total_questions || 0;
+            const correctQ = data.correct_answers || 0;
+            const unlockScore = data.unlock_score || 80;
+            const roadmapId = data.roadmap_id;
+
+            const nextStepAction = (isPassed && data.next_step_id)
+                ? `<a href="/roadmaps/${roadmapId}/?study=${data.next_step_id}" class="btn btn-indigo px-4 py-2 rounded-3 text-nowrap"><i class="fa-solid fa-graduation-cap me-2"></i> Continue Learning Step ${data.next_step_order}: ${escapeHtml(data.next_step_title)} <i class="fa-solid fa-arrow-right ms-2"></i></a>`
+                : (isPassed)
+                ? `<a href="/roadmaps/" class="btn btn-emerald px-4 py-2 rounded-3 text-nowrap"><i class="fa-solid fa-trophy me-2"></i> Roadmap Completed! Return to Roadmaps Page</a>`
+                : `<a href="/roadmaps/${roadmapId}/?study=${data.step_id}" class="btn btn-indigo px-4 py-2 rounded-3"><i class="fa-solid fa-book-open me-2"></i> Review Step Materials</a>
+                   <button onclick="location.reload()" class="btn btn-outline-indigo px-4 py-2 rounded-3"><i class="fa-solid fa-rotate-right me-2"></i> Retake Quiz</button>`;
+
+            resultCard.className = `glass-card p-4 p-lg-5 ${isPassed ? 'bg-success bg-opacity-10 border-success' : 'bg-warning bg-opacity-10 border-warning'} border rounded-3 mt-4`;
+            resultCard.innerHTML = `
+                <div class="text-center mb-4">
+                    <div class="stat-card-icon mx-auto mb-3" style="width: 72px; height: 72px; font-size: 2.2rem; background: ${isPassed ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)'}; color: ${isPassed ? 'var(--accent-emerald)' : 'var(--accent-amber)'}">
+                        <i class="fa-solid ${isPassed ? 'fa-trophy' : 'fa-triangle-exclamation'}"></i>
+                    </div>
+                    <span class="${isPassed ? 'badge-glass-emerald' : 'badge-glass-amber'} mb-2 d-inline-block fs-6">
+                        ${isRoadmapCompleted ? '<i class="fa-solid fa-trophy me-1"></i> ROADMAP COMPLETED!' : isPassed ? '<i class="fa-solid fa-check-circle me-1"></i> STEP PASSED' : '<i class="fa-solid fa-clock-rotate-left me-1"></i> NOT PASSED YET'}
+                    </span>
+                    <h2 class="fw-extrabold text-white mb-1">${isRoadmapCompleted ? 'Roadmap Finished!' : isPassed ? 'Step Passed!' : 'Attempt Complete'}</h2>
+                    <p class="text-secondary small mb-0">${isRoadmapCompleted ? '🎉 Congratulations! You completed all steps in this roadmap track!' : isPassed ? 'You passed the step assessment successfully!' : 'Keep reviewing the step materials to achieve the passing threshold.'}</p>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="glass-card p-3 text-center bg-dark bg-opacity-60 border-0 h-100">
+                            <small class="text-secondary d-block">Final Mark</small>
+                            <div class="fs-3 fw-bold ${isPassed ? 'text-emerald' : 'text-amber'}">${scoreVal}%</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="glass-card p-3 text-center bg-dark bg-opacity-60 border-0 h-100">
+                            <small class="text-secondary d-block">Correct Answers</small>
+                            <div class="fs-3 fw-bold text-white">${correctQ} / ${totalQ}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="glass-card p-3 text-center bg-dark bg-opacity-60 border-0 h-100">
+                            <small class="text-secondary d-block">Pass Threshold</small>
+                            <div class="fs-3 fw-bold text-indigo">${unlockScore}%</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="glass-card p-3 text-center bg-dark bg-opacity-60 border-0 h-100">
+                            <small class="text-secondary d-block">Attempt #</small>
+                            <div class="fs-3 fw-bold text-cyan">${data.attempt_number || 1}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 glass-card bg-dark bg-opacity-60 border-0 mb-4 text-center">
+                    <div class="small ${isPassed ? 'text-emerald' : 'text-secondary'}">
+                        ${isRoadmapCompleted 
+                            ? `<i class="fa-solid fa-trophy text-warning me-1"></i> You scored <strong>${scoreVal}%</strong> and finished the final step! You have completed this entire roadmap track!`
+                            : isPassed 
+                            ? `<i class="fa-solid fa-circle-check me-1"></i> You scored <strong>${scoreVal}%</strong> (Passing requirement: ${unlockScore}%). Step progress has been marked as <strong>Completed</strong> and the next step is now <strong>Unlocked</strong>!` 
+                            : `<i class="fa-solid fa-info-circle me-1"></i> You scored <strong>${scoreVal}%</strong>. You need at least <strong>${unlockScore}%</strong> to pass this step. Try retaking the quiz after reviewing the step content.`}
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-3 justify-content-center align-items-center">
+                    ${nextStepAction}
+                </div>
+            `;
+
+            resultCard.classList.remove('d-none');
+            resultCard.scrollIntoView({ behavior: 'smooth' });
+
+            // Hide action footer after submission
+            document.getElementById('quizActionFooter').classList.add('d-none');
+
+        } catch (error) {
+            message.className = 'alert alert-danger bg-danger bg-opacity-20 text-danger mt-4 border-0 p-3 rounded-3';
+            message.textContent = error.message;
+            message.classList.remove('d-none');
+        }
+    });
+
+    loadQuiz().catch((error) => {
+        document.getElementById('quizQuestions').innerHTML = '<div class="alert alert-danger bg-danger bg-opacity-20 text-danger border-0">Unable to load quiz details.</div>';
+        console.error(error);
+    });
+</script>
+{% endblock %}

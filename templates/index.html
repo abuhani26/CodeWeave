@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}Home | CODEweave{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="row align-items-center g-5 py-3 py-lg-4">
+        <div class="col-lg-6">
+            <span class="badge-glass-indigo mb-3 d-inline-flex align-items-center gap-2">
+                <i class="fa-solid fa-sparkles text-indigo"></i> Next-Gen Learning Ecosystem
+            </span>
+            <h1 class="display-4 fw-extrabold mb-3 lh-sm">
+                Master Developer Roadmaps <span class="text-gradient">Step-by-Step</span>
+            </h1>
+            <p class="lead text-secondary mb-4 fs-5">
+                CODEweave turns complex tech stacks into structured, step-by-step roadmaps. Complete interactive step quizzes, unlock continuous progress, and accelerate your engineering mastery.
+            </p>
+            <div class="d-flex gap-3 flex-wrap auth-home-actions mb-4">
+                <a href="/register/" class="btn btn-indigo px-4 py-3 rounded-3 auth-guest-action d-inline-flex align-items-center gap-2">
+                    <span>Start Learning Free</span> <i class="fa-solid fa-arrow-right"></i>
+                </a>
+                <a href="/login/" class="btn btn-outline-indigo px-4 py-3 rounded-3 auth-guest-action d-inline-flex align-items-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket"></i> Sign In
+                </a>
+                <a href="/roadmaps/" class="btn btn-indigo px-4 py-3 rounded-3 auth-authenticated-action d-none d-inline-flex align-items-center gap-2">
+                    <i class="fa-solid fa-compass"></i> Explore Roadmaps
+                </a>
+                <a href="/profile/" class="btn btn-outline-indigo px-4 py-3 rounded-3 auth-authenticated-action d-none d-inline-flex align-items-center gap-2">
+                    <i class="fa-solid fa-circle-user"></i> View Profile
+                </a>
+            </div>
+            
+            <div class="d-flex align-items-center gap-4 text-secondary pt-2">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-check-circle text-emerald"></i>
+                    <span class="small">Structured Steps</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-check-circle text-emerald"></i>
+                    <span class="small">Instant Quiz Unlocks</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-check-circle text-emerald"></i>
+                    <span class="small">Real Progress</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="glass-card p-4 p-lg-5 position-relative overflow-hidden">
+                <!-- Decorative Glow Background -->
+                <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(99, 102, 241, 0.2); filter: blur(60px); border-radius: 50%;"></div>
+                
+                <div class="row g-4">
+                    <div class="col-6">
+                        <div class="glass-card p-4 text-center h-100 border-0 bg-dark bg-opacity-50">
+                            <div class="stat-card-icon mx-auto mb-3" style="background: rgba(99, 102, 241, 0.15); color: var(--accent-indigo);">
+                                <i class="fa-solid fa-route"></i>
+                            </div>
+                            <div class="fs-2 fw-bold text-white mb-1">Roadmaps</div>
+                            <small class="text-secondary">Curated Learning Tracks</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="glass-card p-4 text-center h-100 border-0 bg-dark bg-opacity-50">
+                            <div class="stat-card-icon mx-auto mb-3" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan);">
+                                <i class="fa-solid fa-circle-question"></i>
+                            </div>
+                            <div class="fs-2 fw-bold text-white mb-1">Quizzes</div>
+                            <small class="text-secondary">Knowledge Verification</small>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="glass-card p-4 text-center border-0 bg-dark bg-opacity-50">
+                            <div class="stat-card-icon mx-auto mb-3" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald);">
+                                <i class="fa-solid fa-trophy"></i>
+                            </div>
+                            <div class="fs-2 fw-bold text-white mb-1">Progress Tracking</div>
+                            <small class="text-secondary">Unlock next-level modules as you pass quizzes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Cards Grid -->
+    <div class="row g-4 mt-5">
+        <div class="col-md-4">
+            <div class="glass-card p-4 h-100 glass-card-interactive">
+                <div class="stat-card-icon mb-3" style="background: rgba(99, 102, 241, 0.15); color: var(--accent-indigo);">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <h4 class="fw-bold mb-2">Structured Tracks</h4>
+                <p class="text-secondary mb-0 small">Follow clear, step-by-step progression built by expert instructors to avoid tutorial hell.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="glass-card p-4 h-100 glass-card-interactive">
+                <div class="stat-card-icon mb-3" style="background: rgba(168, 85, 247, 0.15); color: var(--accent-purple);">
+                    <i class="fa-solid fa-vial"></i>
+                </div>
+                <h4 class="fw-bold mb-2">Interactive Quizzes</h4>
+                <p class="text-secondary mb-0 small">Validate your retention after every step. Score above threshold to automatically unlock the next milestone.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="glass-card p-4 h-100 glass-card-interactive">
+                <div class="stat-card-icon mb-3" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan);">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <h4 class="fw-bold mb-2">Analytics & Scores</h4>
+                <p class="text-secondary mb-0 small">Monitor your score history, attempt analytics, and learning achievements in your personal dashboard.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

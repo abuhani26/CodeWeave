@@ -1,0 +1,469 @@
+{% extends 'base.html' %}
+{% block title %}Roadmap Details | CODEweave{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row g-4">
+        <!-- Roadmap Info Sidebar -->
+        <div class="col-lg-4">
+            <div class="glass-card p-4 sticky-lg-top" style="top: 90px; z-index: 10;">
+                <span class="badge-glass-indigo mb-3 d-inline-block"><i class="fa-solid fa-route me-1"></i> Learning Roadmap</span>
+                <h2 class="fw-extrabold text-white mb-2" id="roadmapTitle">Loading...</h2>
+                <p id="roadmapDescription" class="text-secondary mb-4 small">Loading description...</p>
+                
+                <div class="p-3 glass-card bg-dark bg-opacity-40 border-0 mb-3">
+                    <div class="d-flex align-items-center gap-2 text-secondary small mb-2">
+                        <i class="fa-solid fa-circle-info text-indigo"></i> <span id="roadmapMeta">Status: Loading...</span>
+                    </div>
+                </div>
+
+                <a href="{% url 'roadmaps-page' %}" class="btn btn-glass btn-sm w-100 py-2 rounded-3 text-center">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Back to Roadmaps
+                </a>
+            </div>
+        </div>
+
+        <!-- Steps Timeline Stepper -->
+        <div class="col-lg-8">
+            <div class="glass-card p-4 p-lg-5">
+                <div id="roadmapCompletedBanner" class="d-none alert alert-success bg-success bg-opacity-15 border border-success border-opacity-25 rounded-3 mb-4 p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="fs-2 text-success"><i class="fa-solid fa-trophy"></i></div>
+                        <div>
+                            <h5 class="fw-bold text-white mb-1">🎉 Roadmap Completed!</h5>
+                            <span class="text-secondary small">You have completed all step modules in this learning track.</span>
+                        </div>
+                    </div>
+                    <a href="{% url 'roadmaps-page' %}" class="btn btn-emerald rounded-3 px-4 py-2">
+                        <i class="fa-solid fa-compass me-1"></i> Return to Roadmaps Page
+                    </a>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+                    <div>
+                        <h3 class="fw-bold text-white mb-1">Roadmap Steps & Lessons</h3>
+                        <p class="text-secondary small mb-0">Study step articles and watch videos, then complete the step or pass quizzes to unlock subsequent modules.</p>
+                    </div>
+                </div>
+                <div id="stepsList" class="d-grid gap-4"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Study Lesson Workspace Modal -->
+<div class="modal fade modal-glass" id="studyLessonModal" tabindex="-1" aria-labelledby="studyLessonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content glass-card border-0">
+            <div class="modal-header border-bottom border-secondary border-opacity-25 p-4">
+                <div>
+                    <span class="badge-glass-indigo mb-2 d-inline-block" id="modalStepBadge">Step Module</span>
+                    <h4 class="modal-title fw-bold text-white" id="studyLessonModalLabel">Lesson Content</h4>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="studyLessonModalBody">
+                <!-- Learning content rendered dynamically -->
+            </div>
+            <div class="modal-footer border-top border-secondary border-opacity-25 p-3 d-flex justify-content-between">
+                <button type="button" class="btn btn-glass px-4 rounded-3" data-bs-dismiss="modal">Close Workspace</button>
+                <div id="modalQuizAction"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Roadmap Completion Modal -->
+<div class="modal fade modal-glass" id="roadmapCompletedModal" tabindex="-1" aria-labelledby="roadmapCompletedModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0 text-center p-4">
+            <div class="stat-card-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2.5rem; background: rgba(16, 185, 129, 0.2); color: var(--accent-emerald)">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <span class="badge-glass-emerald mb-2 d-inline-block align-self-center fs-6">
+                <i class="fa-solid fa-circle-check me-1"></i> ROADMAP COMPLETED!
+            </span>
+            <h2 class="fw-extrabold text-white mb-2" id="completedRoadmapTitle">Roadmap Finished</h2>
+            <p class="text-secondary mb-4" id="completedRoadmapMessage">Congratulations! You have completed all step modules in this roadmap.</p>
+
+            <div class="d-flex justify-content-center gap-2">
+                <a href="{% url 'roadmaps-page' %}" class="btn btn-indigo px-4 py-2 rounded-3 w-100">
+                    <i class="fa-solid fa-compass me-1"></i> Return to Roadmaps Page
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const roadmapId = window.location.pathname.split('/').filter(Boolean)[1];
+    let cachedSteps = [];
+    let cachedQuizzes = [];
+
+    function escapeHtml(value) {
+        const element = document.createElement('div');
+        element.textContent = value || '';
+        return element.innerHTML;
+    }
+
+    function externalUrl(value) {
+        try {
+            const url = new URL(value);
+            return ['http:', 'https:'].includes(url.protocol) ? url.href : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function videoEmbedUrl(value) {
+        const url = externalUrl(value);
+        if (!url) return null;
+
+        try {
+            const parsed = new URL(url);
+            if (parsed.hostname === 'youtu.be') {
+                return `https://www.youtube.com/embed/${parsed.pathname.slice(1)}`;
+            }
+            if (parsed.hostname.includes('youtube.com')) {
+                if (parsed.pathname.includes('/embed/')) {
+                    return url;
+                }
+                if (parsed.pathname.includes('/shorts/')) {
+                    const videoId = parsed.pathname.split('/shorts/')[1];
+                    return `https://www.youtube.com/embed/${videoId}`;
+                }
+                const videoId = parsed.searchParams.get('v');
+                return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+            }
+            if (parsed.hostname.includes('vimeo.com')) {
+                const videoId = parsed.pathname.split('/').filter(Boolean).pop();
+                return videoId ? `https://player.vimeo.com/video/${videoId}` : null;
+            }
+        } catch (e) {
+            return null;
+        }
+        return null;
+    }
+
+    function renderLearningMaterial(content) {
+        if (content.video_file) {
+            return `
+                <div class="ratio ratio-16x9 rounded-3 overflow-hidden border border-secondary border-opacity-25 my-2">
+                    <video class="w-100 h-100" controls preload="metadata">
+                        <source src="${content.video_file}">
+                        Your browser does not support video playback.
+                    </video>
+                </div>`;
+        }
+
+        const url = externalUrl(content.content);
+        const type = (content.content_type || '').toLowerCase();
+
+        if (type === 'video') {
+            const embedUrl = videoEmbedUrl(content.content);
+            if (embedUrl) {
+                return `
+                    <div class="ratio ratio-16x9 rounded-3 overflow-hidden border border-secondary border-opacity-25 my-2">
+                        <iframe src="${embedUrl}" title="${escapeHtml(content.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>`;
+            }
+            if (url && (url.endsWith('.mp4') || url.endsWith('.webm'))) {
+                return `
+                    <div class="ratio ratio-16x9 rounded-3 overflow-hidden border border-secondary border-opacity-25 my-2">
+                        <video class="w-100 h-100" controls preload="metadata">
+                            <source src="${url}">
+                            Your browser does not support video playback.
+                        </video>
+                    </div>`;
+            }
+            if (url) {
+                return `
+                    <div class="p-3 glass-card bg-dark bg-opacity-60 my-2 d-flex align-items-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-circle-play text-indigo fs-4"></i>
+                            <div>
+                                <div class="fw-bold text-white small">Video Link</div>
+                                <span class="text-secondary micro-text">${escapeHtml(url)}</span>
+                            </div>
+                        </div>
+                        <a href="${url}" class="btn btn-sm btn-indigo rounded-3 px-3" target="_blank" rel="noopener">
+                            <i class="fa-solid fa-external-link me-1"></i> Watch Video
+                        </a>
+                    </div>`;
+            }
+            return `<div class="p-3 glass-card bg-dark bg-opacity-60 text-secondary text-break my-2">${escapeHtml(content.content)}</div>`;
+        }
+
+        if (type === 'article') {
+            if (url) {
+                return `
+                    <div class="p-3 glass-card bg-dark bg-opacity-60 my-2 d-flex align-items-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-newspaper text-cyan fs-4"></i>
+                            <div>
+                                <div class="fw-bold text-white small">External Article</div>
+                                <span class="text-secondary micro-text">${escapeHtml(url)}</span>
+                            </div>
+                        </div>
+                        <a href="${url}" class="btn btn-sm btn-outline-indigo rounded-3 px-3" target="_blank" rel="noopener">
+                            <i class="fa-solid fa-book-open me-1"></i> Read Full Article
+                        </a>
+                    </div>`;
+            }
+            return `
+                <div class="article-reader-container p-4 glass-card bg-dark bg-opacity-60 rounded-3 my-2 border border-secondary border-opacity-25" style="color: #e2e8f0; font-size: 0.95rem; line-height: 1.7; white-space: pre-wrap;">${escapeHtml(content.content)}</div>`;
+        }
+
+        if (type === 'code') {
+            const randomId = 'code-' + Math.random().toString(36).substr(2, 9);
+            return `
+                <div class="code-container position-relative my-2">
+                    <button class="btn btn-sm btn-glass position-absolute top-0 end-0 m-2 px-2 py-1 text-xs" onclick="navigator.clipboard.writeText(document.getElementById('${randomId}').innerText); this.innerHTML='<i class=\"fa-solid fa-check text-emerald\"></i> Copied!'; setTimeout(() => this.innerHTML='<i class=\"fa-solid fa-copy\"></i> Copy', 2000)">
+                        <i class="fa-solid fa-copy"></i> Copy
+                    </button>
+                    <pre class="code-block p-3 mb-0 rounded-3"><code id="${randomId}">${escapeHtml(content.content)}</code></pre>
+                </div>`;
+        }
+
+        if (['link', 'pdf'].includes(type) || url) {
+            const targetUrl = url || externalUrl(content.content);
+            if (targetUrl) {
+                return `
+                    <div class="p-3 glass-card bg-dark bg-opacity-60 my-2 d-flex align-items-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa-solid ${type === 'pdf' ? 'fa-file-pdf text-rose' : 'fa-link text-indigo'} fs-4"></i>
+                            <div>
+                                <div class="fw-bold text-white small">${type === 'pdf' ? 'PDF Document' : 'Resource Link'}</div>
+                                <span class="text-secondary micro-text">${escapeHtml(targetUrl)}</span>
+                            </div>
+                        </div>
+                        <a href="${targetUrl}" class="btn btn-sm btn-outline-indigo rounded-3 px-3" target="_blank" rel="noopener">
+                            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Open ${type === 'pdf' ? 'PDF' : 'Link'}
+                        </a>
+                    </div>`;
+            }
+        }
+
+        return `<div class="p-3 glass-card bg-dark bg-opacity-40 text-secondary text-break my-2" style="white-space: pre-wrap;">${escapeHtml(content.content)}</div>`;
+    }
+
+    async function completeStepWithoutQuiz(stepId) {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            alert('Please sign in to save your learning progress.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/roadmaps/steps/${stepId}/complete/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.detail || 'Failed to complete step');
+            }
+
+            const modalElement = bootstrap.Modal.getInstance(document.getElementById('studyLessonModal'));
+            if (modalElement) modalElement.hide();
+
+            if (data.next_step_id) {
+                window.location.href = `/roadmaps/${data.roadmap_id}/?study=${data.next_step_id}`;
+            } else {
+                document.getElementById('completedRoadmapTitle').textContent = `Roadmap Mastered!`;
+                document.getElementById('completedRoadmapMessage').textContent = `🎉 Congratulations! You have completed Step ${data.step_order || ''}: "${escapeHtml(data.step_title || '')}" and finished all steps in this roadmap!`;
+                const completedModal = new bootstrap.Modal(document.getElementById('roadmapCompletedModal'));
+                completedModal.show();
+            }
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    function openStudyModal(stepId) {
+        const step = cachedSteps.find(s => s.id === stepId);
+        if (!step) return;
+
+        document.getElementById('modalStepBadge').textContent = `Step ${step.order} Module`;
+        document.getElementById('studyLessonModalLabel').textContent = step.title;
+
+        const contents = Array.isArray(step.learning_contents) ? step.learning_contents : [];
+        const bodyContainer = document.getElementById('studyLessonModalBody');
+
+        if (!contents.length) {
+            bodyContainer.innerHTML = '<div class="alert alert-dark border-0 glass-card text-secondary"><i class="fa-solid fa-circle-info me-2"></i>No learning materials have been added to this step yet.</div>';
+        } else {
+            bodyContainer.innerHTML = contents.map((content, idx) => `
+                <div class="glass-card p-4 bg-dark bg-opacity-60 mb-4 border border-secondary border-opacity-25">
+                    <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-2">
+                        <div>
+                            <h5 class="fw-bold text-white mb-1">
+                                <i class="fa-solid ${content.content_type === 'video' ? 'fa-film text-indigo' : content.content_type === 'article' ? 'fa-newspaper text-cyan' : content.content_type === 'code' ? 'fa-code text-purple' : 'fa-book-open text-emerald'} me-2"></i>
+                                ${idx + 1}. ${escapeHtml(content.title)}
+                            </h5>
+                            <span class="badge-glass-cyan text-capitalize text-xs">${content.content_type || 'Resource'}</span>
+                        </div>
+                    </div>
+                    ${content.description ? `<p class="text-secondary small mb-3">${escapeHtml(content.description)}</p>` : ''}
+                    <div class="mt-2">${renderLearningMaterial(content)}</div>
+                </div>
+            `).join('');
+        }
+
+        const matchingQuiz = cachedQuizzes.find(quiz => quiz.step === step.id);
+        const quizActionContainer = document.getElementById('modalQuizAction');
+        if (matchingQuiz) {
+            quizActionContainer.innerHTML = `<a href="/quizzes/${matchingQuiz.id}/" class="btn btn-indigo px-4 rounded-3"><i class="fa-solid fa-pen-nib me-1"></i> Start Step Quiz</a>`;
+        } else {
+            quizActionContainer.innerHTML = `<button onclick="completeStepWithoutQuiz(${step.id})" class="btn btn-emerald px-4 rounded-3 d-inline-flex align-items-center gap-2"><i class="fa-solid fa-circle-check"></i> <span>Complete Step & Continue</span> <i class="fa-solid fa-arrow-right"></i></button>`;
+        }
+
+        const modalElement = new bootstrap.Modal(document.getElementById('studyLessonModal'));
+        modalElement.show();
+    }
+
+    async function loadRoadmap() {
+        const roadmapResponse = await fetch(`/api/roadmaps/roadmaps/${roadmapId}/`);
+        const roadmap = await roadmapResponse.json();
+        document.getElementById('roadmapTitle').textContent = roadmap.title || 'Roadmap';
+        document.getElementById('roadmapDescription').textContent = roadmap.description || 'No description available';
+        document.getElementById('roadmapMeta').textContent = `Status: ${roadmap.status} · Created by Author #${roadmap.created_by}`;
+
+        const token = localStorage.getItem('accessToken');
+        const [stepsResponse, quizzesResponse, profileResponse, progressResponse] = await Promise.all([
+            fetch(`/api/roadmaps/roadmaps/${roadmapId}/steps/`),
+            fetch('/api/quizzes/'),
+            fetch('/api/accounts/profile/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            }),
+            fetch('/api/roadmaps/progress/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+        ]);
+        
+        const steps = await stepsResponse.json();
+        const quizzes = quizzesResponse.ok ? await quizzesResponse.json() : [];
+        const profile = profileResponse.ok ? await profileResponse.json() : {};
+        const progressItems = progressResponse.ok ? await progressResponse.json() : [];
+
+        cachedSteps = steps;
+        cachedQuizzes = quizzes;
+
+        const progressByStep = new Map(progressItems.map((progress) => [progress.step, progress]));
+        const isStudent = (profile.role || '').toLowerCase() === 'student';
+        const stepsContainer = document.getElementById('stepsList');
+
+        if (!steps.length) {
+            stepsContainer.innerHTML = '<div class="alert alert-dark border-0 glass-card text-secondary mb-0"><i class="fa-solid fa-info-circle me-2"></i>No steps available for this roadmap yet.</div>';
+            return;
+        }
+
+        steps.sort((first, second) => first.order - second.order);
+
+        // Check if all steps in the roadmap are completed
+        const allStepsCompleted = steps.every(step => {
+            const prog = progressByStep.get(step.id);
+            return prog && prog.status === 'completed';
+        });
+
+        if (allStepsCompleted) {
+            document.getElementById('roadmapCompletedBanner').classList.remove('d-none');
+        }
+
+        stepsContainer.innerHTML = steps.map((step, index) => {
+            const previousStep = steps[index - 1];
+            const previousProgress = previousStep ? progressByStep.get(previousStep.id) : null;
+            const currentProgress = progressByStep.get(step.id);
+            
+            const isCompleted = currentProgress?.status === 'completed';
+            const isUnlocked = !isStudent || index === 0 || (previousProgress && previousProgress.status === 'completed') || (currentProgress && (currentProgress.status === 'active' || currentProgress.status === 'completed'));
+            
+            const nodeClass = isCompleted ? 'completed' : isUnlocked ? 'active' : 'locked';
+            const nodeIcon = isCompleted ? '<i class="fa-solid fa-check"></i>' : isUnlocked ? step.order : '<i class="fa-solid fa-lock"></i>';
+            
+            const matchingQuiz = quizzes.find(quiz => quiz.step === step.id);
+            const quizButton = !isUnlocked
+                ? '<span class="badge-glass-muted"><i class="fa-solid fa-lock me-1"></i> Locked</span>'
+                : matchingQuiz
+                    ? `<a href="/quizzes/${matchingQuiz.id}/" class="btn btn-sm btn-outline-indigo px-3 rounded-3"><i class="fa-solid fa-pen-nib me-1"></i> Take Quiz</a>`
+                    : `<button onclick="completeStepWithoutQuiz(${step.id})" class="btn btn-sm ${isCompleted ? 'btn-glass text-emerald' : 'btn-emerald'} px-3 rounded-3"><i class="fa-solid fa-circle-check me-1"></i> ${isCompleted ? 'Completed (Next Step)' : 'Complete & Next Step'}</button>`;
+
+            const learningContents = Array.isArray(step.learning_contents) ? step.learning_contents : [];
+            const materialCount = learningContents.length;
+
+            const diffBadgeClass = step.difficulty === 'beginner' 
+                ? 'badge-glass-emerald' 
+                : step.difficulty === 'intermediate' 
+                ? 'badge-glass-cyan' 
+                : 'badge-glass-amber';
+
+            return `
+                <div class="step-timeline-item">
+                    <div class="step-badge-node ${nodeClass}">${nodeIcon}</div>
+                    <div class="glass-card p-4">
+                        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <h4 class="fw-bold text-white mb-0">Step ${step.order}: ${escapeHtml(step.title)}</h4>
+                                    <span class="${diffBadgeClass} text-capitalize micro-text">${step.difficulty}</span>
+                                </div>
+                                <small class="text-secondary">${matchingQuiz ? `Unlock Score Threshold: ${step.unlock_score}% minimum` : 'No quiz required — complete materials to unlock next step'}</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">${quizButton}</div>
+                        </div>
+
+                        ${isUnlocked
+                            ? `<div class="mt-3 pt-3 border-top border-secondary border-opacity-25">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fa-solid fa-book-open text-indigo"></i>
+                                        <span class="fw-bold text-white small">${materialCount} Learning Material${materialCount === 1 ? '' : 's'} Available</span>
+                                    </div>
+                                    <button onclick="openStudyModal(${step.id})" class="btn btn-sm btn-indigo px-4 rounded-3 d-inline-flex align-items-center gap-2">
+                                        <i class="fa-solid fa-graduation-cap"></i>
+                                        <span>Start Learning Step ${step.order}</span>
+                                    </button>
+                                </div>
+                                <div class="d-grid gap-3">
+                                    ${materialCount 
+                                        ? learningContents.map(c => `
+                                            <div class="glass-card p-3 bg-dark bg-opacity-40 border border-secondary border-opacity-25">
+                                                <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                                                    <div class="d-flex align-items-center gap-2 text-white small">
+                                                        <i class="fa-solid ${c.content_type === 'video' ? 'fa-film text-indigo' : c.content_type === 'article' ? 'fa-newspaper text-cyan' : c.content_type === 'code' ? 'fa-code text-purple' : 'fa-circle-play text-emerald'} fs-6"></i>
+                                                        <span class="fw-bold">${escapeHtml(c.title)}</span>
+                                                    </div>
+                                                    <span class="badge-glass-cyan text-capitalize text-xs">${c.content_type || 'Resource'}</span>
+                                                </div>
+                                                ${c.description ? `<p class="small text-secondary mb-2">${escapeHtml(c.description)}</p>` : ''}
+                                                <div class="mt-2">${renderLearningMaterial(c)}</div>
+                                            </div>
+                                        `).join('')
+                                        : '<div class="small text-secondary italic">No materials added for this step yet.</div>'}
+                                </div>
+                            </div>`
+                            : `<div class="alert alert-dark border-0 glass-card bg-dark bg-opacity-60 text-secondary mb-0 mt-3 small d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-lock text-warning"></i> Complete step ${previousStep ? previousStep.order : ''} to unlock this lesson module.
+                            </div>`}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Auto-open study modal if URL query param ?study=<stepId> is provided
+        const urlParams = new URLSearchParams(window.location.search);
+        const studyStepId = Number(urlParams.get('study'));
+        if (studyStepId) {
+            setTimeout(() => openStudyModal(studyStepId), 300);
+        }
+    }
+
+    loadRoadmap().catch((error) => {
+        document.getElementById('stepsList').innerHTML = '<div class="alert alert-danger bg-danger bg-opacity-20 text-danger border-0">Unable to load roadmap details.</div>';
+        console.error(error);
+    });
+</script>
+{% endblock %}
