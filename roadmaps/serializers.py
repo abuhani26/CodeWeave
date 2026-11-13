@@ -6,7 +6,7 @@ from .models import LearningContent, Roadmap, Step, StudentProgress
 class LearningContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = LearningContent
-        fields = ["id", "title", "description", "content_type", "content", "video_file", "created_at"]
+        fields = ["id", "title", "description", "content_type", "content", "video_file", "order", "created_at"]
         read_only_fields = ["id", "created_at"]
 
     def validate(self, attrs):
@@ -44,7 +44,7 @@ class StepSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Step
-        fields = ["id", "title", "order", "difficulty", "unlock_score", "learning_contents", "instructor"]
+        fields = ["id", "roadmap", "title", "order", "difficulty", "unlock_score", "learning_contents", "instructor"]
         read_only_fields = ["id", "instructor"]
 
 

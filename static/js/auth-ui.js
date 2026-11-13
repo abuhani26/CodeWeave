@@ -472,15 +472,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         <label class="form-label text-secondary small">Material Title</label>
                         <input type="text" name="title" class="form-control form-control-glass" value="${item.title}" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label text-secondary small">Content Type</label>
-                        <select name="content_type" class="form-select form-select-glass">
-                            <option value="video" ${item.content_type === 'video' ? 'selected' : ''}>Video</option>
-                            <option value="article" ${item.content_type === 'article' ? 'selected' : ''}>Article</option>
-                            <option value="code" ${item.content_type === 'code' ? 'selected' : ''}>Code</option>
-                            <option value="pdf" ${item.content_type === 'pdf' ? 'selected' : ''}>PDF</option>
-                            <option value="link" ${item.content_type === 'link' ? 'selected' : ''}>Link</option>
-                        </select>
+                    <div class="row g-2 mb-3">
+                        <div class="col-8">
+                            <label class="form-label text-secondary small">Content Type</label>
+                            <select name="content_type" class="form-select form-select-glass">
+                                <option value="video" ${item.content_type === 'video' ? 'selected' : ''}>Video</option>
+                                <option value="article" ${item.content_type === 'article' ? 'selected' : ''}>Article</option>
+                                <option value="code" ${item.content_type === 'code' ? 'selected' : ''}>Code</option>
+                                <option value="pdf" ${item.content_type === 'pdf' ? 'selected' : ''}>PDF</option>
+                                <option value="link" ${item.content_type === 'link' ? 'selected' : ''}>Link</option>
+                            </select>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label text-secondary small">Lesson Order #</label>
+                            <input type="number" name="order" class="form-control form-control-glass" value="${item.order || 1}" min="1" required>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-secondary small">Overview Description</label>
@@ -604,6 +610,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 cachedRoadmaps = roadmaps;
                 cachedQuizzes = quizzes;
 
+                const roadmapCountEl = document.getElementById('roadmapRegistryCount');
+                if (roadmapCountEl) roadmapCountEl.textContent = roadmaps.length;
+
+                const stepCountEl = document.getElementById('stepRegistryCount');
+                if (stepCountEl) stepCountEl.textContent = steps.length;
+
+                const quizCountEl = document.getElementById('quizRegistryCount');
+                if (quizCountEl) quizCountEl.textContent = quizzes.length;
+
                 if (roadmapSelect) {
                     roadmapSelect.innerHTML = roadmaps.map((roadmap) => `<option value="${roadmap.id}">${roadmap.title}</option>`).join('');
                 }
@@ -666,12 +681,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     ));
                     cachedContents = learningContents;
 
+                    const contentCountEl = document.getElementById('contentRegistryCount');
+                    if (contentCountEl) contentCountEl.textContent = learningContents.length;
+
                     learningContentList.innerHTML = learningContents.length
                         ? learningContents.map((content) => `
                             <div class="glass-card p-3 bg-dark bg-opacity-40 border border-secondary border-opacity-25">
                                 <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
                                     <div>
-                                        <div class="fw-bold text-white mb-1"><i class="fa-solid fa-file-video text-emerald me-2"></i>${content.title}</div>
+                                        <div class="fw-bold text-white mb-1"><i class="fa-solid fa-file-video text-emerald me-2"></i>Lesson ${content.order || 1}: ${content.title}</div>
                                         <small class="text-secondary">Step ${content.stepOrder}: ${content.stepTitle} &bull; ${content.content_type || 'Resource'}</small>
                                     </div>
                                     <span class="badge-glass-cyan text-capitalize text-xs">${content.content_type || 'content'}</span>

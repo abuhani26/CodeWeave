@@ -37,10 +37,14 @@ class LearningContent(models.Model):
     content_type = models.CharField(max_length=50, choices=[('video', 'Video'), ('article', 'Article'), ('code', 'Code'),('pdf', 'PDF'),('link', 'Link')], default='link')
     content = models.TextField(blank=True, default="")
     video_file = models.FileField(upload_to="learning_videos/", blank=True, null=True)
+    order = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['order', 'created_at']
+
     def __str__(self):
-        return self.title
+        return f"{self.title} (Order {self.order})"
     
 
 class StudentProgress(models.Model):

@@ -1,247 +1,314 @@
 {% extends 'base.html' %}
-{% block title %}Instructor Portal | CODEweave{% endblock %}
+{% block title %}Instructor Studio & Management | CODEweave{% endblock %}
 
 {% block content %}
 <div class="container" id="instructorPage">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <!-- Top Header & Studio Switcher Tabs -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 pb-3 border-bottom border-secondary border-opacity-25">
         <div>
-            <span class="badge-glass-indigo mb-2 d-inline-block"><i class="fa-solid fa-user-gear me-1"></i> Content Studio</span>
-            <h2 class="fw-extrabold mb-1">Instructor Management</h2>
-            <p class="text-secondary mb-0">Build, edit, and delete roadmaps, step modules, quizzes, and learning materials.</p>
+            <span class="badge-glass-indigo mb-2 d-inline-block"><i class="fa-solid fa-user-gear me-1"></i> Instructor Portal</span>
+            <h2 class="fw-extrabold text-white mb-1">Instructor Studio</h2>
+            <p class="text-secondary mb-0">Separate workspaces for creating new course materials and managing existing content.</p>
+        </div>
+        
+        <!-- Separate Page Tabs -->
+        <div class="glass-card p-1.5 rounded-4 d-inline-flex gap-1 bg-dark bg-opacity-60 border border-secondary border-opacity-25 shadow-lg">
+            <button type="button" class="btn btn-sm btn-indigo px-4 py-2 rounded-3 text-nowrap fw-bold" id="btnTabCreate" onclick="switchInstructorTab('create')">
+                <i class="fa-solid fa-plus-circle me-1.5 text-cyan"></i> Creator Studio
+            </button>
+            <button type="button" class="btn btn-sm btn-glass text-secondary px-4 py-2 rounded-3 text-nowrap fw-bold" id="btnTabManage" onclick="switchInstructorTab('manage')">
+                <i class="fa-solid fa-sliders me-1.5 text-indigo"></i> Content Manager
+            </button>
         </div>
     </div>
 
     <div id="roleNotice" class="alert d-none mb-4 border-0 rounded-3"></div>
 
-    <!-- Management Forms Grid -->
-    <div class="row g-4 mb-4">
-        <!-- Create Roadmap -->
-        <div class="col-lg-4">
-            <div class="glass-card p-4 h-100">
-                <h4 class="fw-bold text-white mb-3 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-folder-plus text-indigo"></i> Create Roadmap
-                </h4>
-                <form id="createRoadmapForm" class="needs-validation" novalidate>
-                    <div class="mb-3">
-                        <label for="roadmapTitle" class="form-label text-secondary small">Title</label>
-                        <input type="text" class="form-control form-control-glass" id="roadmapTitle" name="title" required placeholder="e.g. Full-Stack Web Dev">
-                    </div>
-                    <div class="mb-3">
-                        <label for="roadmapDescription" class="form-label text-secondary small">Description</label>
-                        <textarea class="form-control form-control-glass" id="roadmapDescription" name="description" rows="3" required placeholder="Describe the track objectives..."></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="roadmapStatus" class="form-label text-secondary small">Publish Status</label>
-                        <select id="roadmapStatus" class="form-select form-select-glass" name="status">
-                            <option value="draft">Draft</option>
-                            <option value="published">Published</option>
-                            <option value="archived">Archived</option>
-                        </select>
-                    </div>
-                    <div id="createRoadmapMessage" class="alert d-none border-0 rounded-3 small"></div>
-                    <button type="submit" class="btn btn-indigo w-100 rounded-3 py-2">
-                        <i class="fa-solid fa-plus me-1"></i> Create Roadmap
-                    </button>
-                </form>
-            </div>
+    <!-- SECTION 1: CREATOR STUDIO (Dedicated Creation Page) -->
+    <div id="instructorCreateSection">
+        <div class="mb-4">
+            <h4 class="fw-bold text-white mb-1 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-folder-plus text-cyan"></i> Content Creator Studio
+            </h4>
+            <p class="text-secondary small">Build new roadmaps, step modules, quizzes, and learning materials.</p>
         </div>
 
-        <!-- Create Step -->
-        <div class="col-lg-4">
-            <div class="glass-card p-4 h-100">
-                <h4 class="fw-bold text-white mb-3 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-list-check text-cyan"></i> Create Step
-                </h4>
-                <form id="createStepForm" class="needs-validation" novalidate>
-                    <div class="mb-3">
-                        <label for="stepRoadmapSelect" class="form-label text-secondary small">Target Roadmap</label>
-                        <select id="stepRoadmapSelect" class="form-select form-select-glass" name="roadmap" required></select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="stepTitle" class="form-label text-secondary small">Step Title</label>
-                        <input type="text" class="form-control form-control-glass" id="stepTitle" name="title" required placeholder="e.g. Async JS Fundamentals">
-                    </div>
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                            <label for="stepOrder" class="form-label text-secondary small">Order</label>
-                            <input type="number" class="form-control form-control-glass" id="stepOrder" name="order" min="1" required placeholder="1">
+        <!-- Forms Grid: Create Roadmap, Create Step, Create Quiz -->
+        <div class="row g-4 mb-4">
+            <!-- Create Roadmap -->
+            <div class="col-lg-4">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-bold text-white mb-3 d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-route text-indigo"></i> 1. Create Roadmap
+                    </h5>
+                    <form id="createRoadmapForm" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="roadmapTitle" class="form-label text-secondary small">Roadmap Title</label>
+                            <input type="text" class="form-control form-control-glass" id="roadmapTitle" name="title" required placeholder="e.g. Full-Stack Web Dev">
                         </div>
-                        <div class="col-md-6">
-                            <label for="stepDifficulty" class="form-label text-secondary small">Difficulty</label>
-                            <select id="stepDifficulty" class="form-select form-select-glass" name="difficulty">
-                                <option value="beginner">Beginner</option>
-                                <option value="intermediate">Intermediate</option>
-                                <option value="advanced">Advanced</option>
+                        <div class="mb-3">
+                            <label for="roadmapDescription" class="form-label text-secondary small">Description</label>
+                            <textarea class="form-control form-control-glass" id="roadmapDescription" name="description" rows="3" placeholder="Describe the track objectives..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="roadmapStatus" class="form-label text-secondary small">Publish Status</label>
+                            <select id="roadmapStatus" class="form-select form-select-glass" name="status">
+                                <option value="draft">Draft</option>
+                                <option value="published" selected>Published</option>
+                                <option value="archived">Archived</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="stepUnlockScore" class="form-label text-secondary small">Unlock Quiz Score (%)</label>
-                        <input type="number" class="form-control form-control-glass" id="stepUnlockScore" name="unlock_score" min="0" max="100" value="80" required>
-                    </div>
-                    <div id="createStepMessage" class="alert d-none border-0 rounded-3 small"></div>
-                    <button type="submit" class="btn btn-indigo w-100 rounded-3 py-2">
-                        <i class="fa-solid fa-plus me-1"></i> Create Step
-                    </button>
-                </form>
+                        <div id="createRoadmapMessage" class="alert d-none border-0 rounded-3 small"></div>
+                        <button type="submit" class="btn btn-indigo w-100 rounded-3 py-2">
+                            <i class="fa-solid fa-plus me-1"></i> Create Roadmap
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Create Step -->
+            <div class="col-lg-4">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-bold text-white mb-3 d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-list-check text-cyan"></i> 2. Create Step Module
+                    </h5>
+                    <form id="createStepForm" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="stepRoadmapSelect" class="form-label text-secondary small">Target Roadmap</label>
+                            <select id="stepRoadmapSelect" class="form-select form-select-glass" name="roadmap" required></select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="stepTitle" class="form-label text-secondary small">Step Title</label>
+                            <input type="text" class="form-control form-control-glass" id="stepTitle" name="title" required placeholder="e.g. Async JS Fundamentals">
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label for="stepOrder" class="form-label text-secondary small">Step Order #</label>
+                                <input type="number" class="form-control form-control-glass" id="stepOrder" name="order" min="1" required placeholder="1">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="stepDifficulty" class="form-label text-secondary small">Difficulty</label>
+                                <select id="stepDifficulty" class="form-select form-select-glass" name="difficulty">
+                                    <option value="beginner">Beginner</option>
+                                    <option value="intermediate">Intermediate</option>
+                                    <option value="advanced">Advanced</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="stepUnlockScore" class="form-label text-secondary small">Unlock Quiz Score (%)</label>
+                            <input type="number" class="form-control form-control-glass" id="stepUnlockScore" name="unlock_score" min="0" max="100" value="80" required>
+                        </div>
+                        <div id="createStepMessage" class="alert d-none border-0 rounded-3 small"></div>
+                        <button type="submit" class="btn btn-indigo w-100 rounded-3 py-2">
+                            <i class="fa-solid fa-plus me-1"></i> Create Step Module
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Create Quiz -->
+            <div class="col-lg-4">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-bold text-white mb-3 d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-vial-circle-check text-purple"></i> 3. Create Assessment Quiz
+                    </h5>
+                    <form id="createQuizForm" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="quizTitle" class="form-label text-secondary small">Quiz Title</label>
+                            <input type="text" class="form-control form-control-glass" id="quizTitle" name="title" required placeholder="e.g. Step 1 Mastery Quiz">
+                        </div>
+                        <div class="mb-3">
+                            <label for="quizStepSelect" class="form-label text-secondary small">Associated Step</label>
+                            <select id="quizStepSelect" class="form-select form-select-glass" name="step" required></select>
+                        </div>
+                        <div id="createQuizMessage" class="alert d-none border-0 rounded-3 small"></div>
+                        <button type="submit" class="btn btn-indigo w-100 rounded-3 py-2">
+                            <i class="fa-solid fa-plus me-1"></i> Create Step Quiz
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
 
-        <!-- Create Quiz -->
-        <div class="col-lg-4">
-            <div class="glass-card p-4 h-100">
-                <h4 class="fw-bold text-white mb-3 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-vial-circle-check text-purple"></i> Create Quiz
+        <!-- Add Learning Material Form -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <h5 class="fw-bold text-white mb-3 d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-file-video text-emerald"></i> 4. Add Learning Content / Lesson Material
+                    </h5>
+                    <form id="createLearningContentForm" class="needs-validation" novalidate>
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label for="learningContentStepSelect" class="form-label text-secondary small">Target Step</label>
+                                <select id="learningContentStepSelect" class="form-select form-select-glass" name="step" required>
+                                    <option value="" selected disabled>Select a step</option>
+                                    {% for step in available_steps %}
+                                    <option value="{{ step.id }}">{{ step.roadmap.title }} — Step {{ step.order }}: {{ step.title }}</option>
+                                    {% empty %}
+                                    <option value="" selected disabled>No steps available — create a step first</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="learningContentTitle" class="form-label text-secondary small">Material Title</label>
+                                <input type="text" class="form-control form-control-glass" id="learningContentTitle" name="title" required placeholder="Lesson title...">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="learningContentType" class="form-label text-secondary small">Content Type</label>
+                                <select id="learningContentType" class="form-select form-select-glass" name="content_type">
+                                    <option value="video">Video</option>
+                                    <option value="article">Article</option>
+                                    <option value="code">Code</option>
+                                    <option value="pdf">PDF</option>
+                                    <option value="link">Link</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="learningContentOrder" class="form-label text-secondary small">Lesson Order #</label>
+                                <input type="number" class="form-control form-control-glass" id="learningContentOrder" name="order" min="1" value="1" placeholder="1">
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                <label for="learningContentDescription" class="form-label text-secondary small">Short Overview</label>
+                                <textarea class="form-control form-control-glass" id="learningContentDescription" name="description" rows="3" placeholder="Key takeaways..."></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="learningContentBody" class="form-label text-secondary small">Content Body / URL / Code Snippet</label>
+                                <textarea class="form-control form-control-glass" id="learningContentBody" name="content" rows="3" placeholder="Paste external link, article text, or code..."></textarea>
+                            </div>
+                        </div>
+                        <div class="mt-3" id="learningContentVideoUpload">
+                            <label for="learningContentVideoFile" class="form-label text-secondary small">Video File Upload</label>
+                            <input class="form-control form-control-glass" id="learningContentVideoFile" name="video_file" type="file" accept="video/*">
+                            <div class="form-text text-muted small">Upload video (MP4/WebM) or provide external URL above.</div>
+                        </div>
+                        <div id="createLearningContentMessage" class="alert d-none mt-3 border-0 rounded-3 small"></div>
+                        <button type="submit" class="btn btn-indigo mt-3 rounded-3 px-4 py-2">
+                            <i class="fa-solid fa-upload me-1"></i> Attach Learning Material
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Quiz Question Form -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <h5 class="fw-bold text-white mb-3 d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-circle-question text-amber"></i> 5. Add Quiz Questions & Multiple Choice Options
+                    </h5>
+                    <form id="createQuestionForm" class="needs-validation" novalidate>
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label for="questionQuizSelect" class="form-label text-secondary small">Target Quiz</label>
+                                <select id="questionQuizSelect" class="form-select form-select-glass" name="quiz" required></select>
+                            </div>
+                            <div class="col-md-5">
+                                <label for="questionText" class="form-label text-secondary small">Question Prompt</label>
+                                <input type="text" class="form-control form-control-glass" id="questionText" name="text" required placeholder="What is...">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="questionOrder" class="form-label text-secondary small">Question Number</label>
+                                <input type="number" class="form-control form-control-glass" id="questionOrder" name="order" min="1" required placeholder="1">
+                            </div>
+                        </div>
+
+                        <div class="mt-4 p-3 glass-card bg-dark bg-opacity-40 border-0">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label text-white fw-bold mb-0">Multiple Choice Answers</label>
+                                <button type="button" id="addChoiceBtn" class="btn btn-glass btn-sm rounded-3">
+                                    <i class="fa-solid fa-plus me-1"></i> Add Choice Option
+                                </button>
+                            </div>
+                            <div class="small text-secondary mb-3">Mark radio button for the single correct answer option.</div>
+                            <div id="choiceRows" class="d-grid gap-2"></div>
+                        </div>
+
+                        <div id="createQuestionMessage" class="alert d-none mt-3 border-0 rounded-3 small"></div>
+                        <button type="submit" class="btn btn-indigo mt-3 rounded-3 px-4 py-2">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> Save Quiz Question
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 2: COMPACT CONTENT MANAGEMENT CENTER -->
+    <div id="instructorManageSection" class="d-none">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+                <h4 class="fw-bold text-white mb-1 d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-sliders text-indigo"></i> Content Management & Registry Center
                 </h4>
-                <form id="createQuizForm" class="needs-validation" novalidate>
-                    <div class="mb-3">
-                        <label for="quizTitle" class="form-label text-secondary small">Quiz Title</label>
-                        <input type="text" class="form-control form-control-glass" id="quizTitle" name="title" required placeholder="e.g. Step 1 Mastery Quiz">
-                    </div>
-                    <div class="mb-3">
-                        <label for="quizStepSelect" class="form-label text-secondary small">Associated Step</label>
-                        <select id="quizStepSelect" class="form-select form-select-glass" name="step" required></select>
-                    </div>
-                    <div id="createQuizMessage" class="alert d-none border-0 rounded-3 small"></div>
-                    <button type="submit" class="btn btn-indigo w-100 rounded-3 py-2">
-                        <i class="fa-solid fa-plus me-1"></i> Create Quiz
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Create Learning Content Form -->
-    <div class="row g-4 mb-4">
-        <div class="col-12">
-            <div class="glass-card p-4">
-                <h4 class="fw-bold text-white mb-3 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-file-video text-cyan"></i> Add Learning Content
-                </h4>
-                <form id="createLearningContentForm" class="needs-validation" novalidate>
-                    <div class="row g-3 align-items-end">
-                        <div class="col-md-4">
-                            <label for="learningContentStepSelect" class="form-label text-secondary small">Step</label>
-                            <select id="learningContentStepSelect" class="form-select form-select-glass" name="step" required>
-                                <option value="" selected disabled>Select a step</option>
-                                {% for step in available_steps %}
-                                <option value="{{ step.id }}">{{ step.roadmap.title }} — Step {{ step.order }}: {{ step.title }}</option>
-                                {% empty %}
-                                <option value="" selected disabled>No steps available — create a step first</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="learningContentTitle" class="form-label text-secondary small">Material Title</label>
-                            <input type="text" class="form-control form-control-glass" id="learningContentTitle" name="title" required placeholder="Title...">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="learningContentType" class="form-label text-secondary small">Content Type</label>
-                            <select id="learningContentType" class="form-select form-select-glass" name="content_type">
-                                <option value="video">Video</option>
-                                <option value="article">Article</option>
-                                <option value="code">Code</option>
-                                <option value="pdf">PDF</option>
-                                <option value="link">Link</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="row g-3 mt-1">
-                        <div class="col-md-6">
-                            <label for="learningContentDescription" class="form-label text-secondary small">Short Overview</label>
-                            <textarea class="form-control form-control-glass" id="learningContentDescription" name="description" rows="3" required placeholder="Key takeaways..."></textarea>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="learningContentBody" class="form-label text-secondary small">Content Body / URL / Code Snippet</label>
-                            <textarea class="form-control form-control-glass" id="learningContentBody" name="content" rows="3" placeholder="Paste external link, article text, or code..."></textarea>
-                        </div>
-                    </div>
-                    <div class="mt-3" id="learningContentVideoUpload">
-                        <label for="learningContentVideoFile" class="form-label text-secondary small">Video File Upload</label>
-                        <input class="form-control form-control-glass" id="learningContentVideoFile" name="video_file" type="file" accept="video/*">
-                        <div class="form-text text-muted small">Upload video (MP4/WebM) or provide external URL above.</div>
-                    </div>
-                    <div id="createLearningContentMessage" class="alert d-none mt-3 border-0 rounded-3 small"></div>
-                    <button type="submit" class="btn btn-indigo mt-3 rounded-3 px-4 py-2">
-                        <i class="fa-solid fa-upload me-1"></i> Attach Learning Material
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Create Question Form -->
-    <div class="row g-4 mb-4">
-        <div class="col-12">
-            <div class="glass-card p-4">
-                <h4 class="fw-bold text-white mb-3 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-circle-question text-amber"></i> Add Quiz Questions & Answers
-                </h4>
-                <form id="createQuestionForm" class="needs-validation" novalidate>
-                    <div class="row g-3 align-items-end">
-                        <div class="col-md-4">
-                            <label for="questionQuizSelect" class="form-label text-secondary small">Target Quiz</label>
-                            <select id="questionQuizSelect" class="form-select form-select-glass" name="quiz" required></select>
-                        </div>
-                        <div class="col-md-5">
-                            <label for="questionText" class="form-label text-secondary small">Question Prompt</label>
-                            <input type="text" class="form-control form-control-glass" id="questionText" name="text" required placeholder="What is...">
-                        </div>
-                        <div class="col-md-3">
-                            <label for="questionOrder" class="form-label text-secondary small">Question Number</label>
-                            <input type="number" class="form-control form-control-glass" id="questionOrder" name="order" min="1" required placeholder="1">
-                        </div>
-                    </div>
-
-                    <div class="mt-4 p-3 glass-card bg-dark bg-opacity-40 border-0">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="form-label text-white fw-bold mb-0">Multiple Choice Answers</label>
-                            <button type="button" id="addChoiceBtn" class="btn btn-glass btn-sm rounded-3">
-                                <i class="fa-solid fa-plus me-1"></i> Add Choice Option
-                            </button>
-                        </div>
-                        <div class="small text-secondary mb-3">Mark radio for the single correct answer option.</div>
-                        <div id="choiceRows" class="d-grid gap-2"></div>
-                    </div>
-
-                    <div id="createQuestionMessage" class="alert d-none mt-3 border-0 rounded-3 small"></div>
-                    <button type="submit" class="btn btn-indigo mt-3 rounded-3 px-4 py-2">
-                        <i class="fa-solid fa-floppy-disk me-1"></i> Save Question
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Active Management Lists -->
-    <div class="row g-4">
-        <div class="col-lg-4">
-            <div class="glass-card p-4 h-100">
-                <h4 class="fw-bold text-white mb-3"><i class="fa-solid fa-route text-indigo me-2"></i>Roadmaps</h4>
-                <div id="instructorRoadmapList" class="d-grid gap-2"></div>
+                <p class="text-secondary small mb-0">Compact in-place registry for updating and deleting course materials.</p>
             </div>
         </div>
 
-        <div class="col-lg-4">
-            <div class="glass-card p-4 h-100">
-                <h4 class="fw-bold text-white mb-3"><i class="fa-solid fa-bars-staggered text-cyan me-2"></i>Steps</h4>
-                <div id="instructorStepList" class="d-grid gap-2"></div>
+        <!-- Live Search & Filter Bar -->
+        <div class="glass-card p-3 mb-4 bg-dark bg-opacity-60 border border-secondary border-opacity-25">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-secondary border-opacity-25 text-secondary">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" id="manageSearchInput" class="form-control form-control-glass ps-0 border-start-0" placeholder="Filter roadmaps, steps, quizzes, or lessons by keyword..." onkeyup="filterManagementRegistry(this.value)">
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <span class="badge-glass-cyan text-xs"><i class="fa-solid fa-layer-group me-1"></i> Compact Fixed Registry</span>
+                </div>
             </div>
         </div>
 
-        <div class="col-lg-4">
-            <div class="glass-card p-4 h-100">
-                <h4 class="fw-bold text-white mb-3"><i class="fa-solid fa-brain text-purple me-2"></i>Quizzes</h4>
-                <div id="instructorQuizList" class="d-grid gap-2"></div>
+        <!-- Bounded Management Lists Grid (Height Restricted Containers) -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-bold text-white mb-3 d-flex align-items-center justify-content-between">
+                        <span><i class="fa-solid fa-route text-indigo me-2"></i>Roadmaps</span>
+                        <span class="badge-glass-indigo text-xs" id="roadmapRegistryCount">0</span>
+                    </h5>
+                    <div id="instructorRoadmapList" class="d-grid gap-2" style="max-height: 420px; overflow-y: auto; padding-right: 4px;"></div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-bold text-white mb-3 d-flex align-items-center justify-content-between">
+                        <span><i class="fa-solid fa-bars-staggered text-cyan me-2"></i>Steps</span>
+                        <span class="badge-glass-cyan text-xs" id="stepRegistryCount">0</span>
+                    </h5>
+                    <div id="instructorStepList" class="d-grid gap-2" style="max-height: 420px; overflow-y: auto; padding-right: 4px;"></div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-bold text-white mb-3 d-flex align-items-center justify-content-between">
+                        <span><i class="fa-solid fa-brain text-purple me-2"></i>Quizzes</span>
+                        <span class="badge-glass-purple text-xs" id="quizRegistryCount">0</span>
+                    </h5>
+                    <div id="instructorQuizList" class="d-grid gap-2" style="max-height: 420px; overflow-y: auto; padding-right: 4px;"></div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="row g-4 mt-1 mb-5">
-        <div class="col-12">
-            <div class="glass-card p-4">
-                <h4 class="fw-bold text-white mb-3"><i class="fa-solid fa-photo-film text-emerald me-2"></i>Learning Content Registry</h4>
-                <div id="instructorLearningContentList" class="d-grid gap-2"></div>
+        <!-- Compact Learning Content Registry -->
+        <div class="row g-4 mb-5">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <h5 class="fw-bold text-white mb-3 d-flex align-items-center justify-content-between">
+                        <span><i class="fa-solid fa-photo-film text-emerald me-2"></i>Learning Content & Lessons Registry</span>
+                        <span class="badge-glass-emerald text-xs" id="contentRegistryCount">0</span>
+                    </h5>
+                    <div id="instructorLearningContentList" class="d-grid gap-2" style="max-height: 480px; overflow-y: auto; padding-right: 4px;"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -267,4 +334,74 @@
         </div>
     </div>
 </div>
+
+<script>
+    function switchInstructorTab(tabName) {
+        const createSection = document.getElementById('instructorCreateSection');
+        const manageSection = document.getElementById('instructorManageSection');
+        const btnCreate = document.getElementById('btnTabCreate');
+        const btnManage = document.getElementById('btnTabManage');
+
+        if (!createSection || !manageSection) return;
+
+        if (tabName === 'create') {
+            createSection.classList.remove('d-none');
+            manageSection.classList.add('d-none');
+            btnCreate.className = 'btn btn-sm btn-indigo px-4 py-2 rounded-3 text-nowrap fw-bold shadow-sm';
+            btnManage.className = 'btn btn-sm btn-glass text-secondary px-4 py-2 rounded-3 text-nowrap fw-bold';
+        } else {
+            createSection.classList.add('d-none');
+            manageSection.classList.remove('d-none');
+            btnCreate.className = 'btn btn-sm btn-glass text-secondary px-4 py-2 rounded-3 text-nowrap fw-bold';
+            btnManage.className = 'btn btn-sm btn-indigo px-4 py-2 rounded-3 text-nowrap fw-bold shadow-sm';
+        }
+
+        try {
+            const url = new URL(window.location);
+            url.searchParams.set('tab', tabName);
+            window.history.replaceState({}, '', url);
+        } catch (e) {}
+    }
+
+    function filterManagementRegistry(query) {
+        const q = (query || '').toLowerCase().trim();
+        const registryConfigs = [
+            { containerId: 'instructorRoadmapList', countId: 'roadmapRegistryCount' },
+            { containerId: 'instructorStepList', countId: 'stepRegistryCount' },
+            { containerId: 'instructorQuizList', countId: 'quizRegistryCount' },
+            { containerId: 'instructorLearningContentList', countId: 'contentRegistryCount' }
+        ];
+
+        registryConfigs.forEach(({ containerId, countId }) => {
+            const container = document.getElementById(containerId);
+            const countEl = document.getElementById(countId);
+            if (!container) return;
+
+            const items = container.querySelectorAll('.glass-card');
+            let visibleCount = 0;
+
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                if (!q || text.includes(q)) {
+                    item.style.display = '';
+                    visibleCount += 1;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (countEl) {
+                countEl.textContent = visibleCount;
+            }
+        });
+    }
+
+    window.filterManagementRegistry = filterManagementRegistry;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        const initialTab = params.get('tab') || 'create';
+        switchInstructorTab(initialTab);
+    });
+</script>
 {% endblock %}

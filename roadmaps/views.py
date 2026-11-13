@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.generic import TemplateView
+from django.db.models import Max
 
 from .permissions import IsInstructorOrAdmin
 
@@ -80,7 +81,7 @@ class StepListCreateView(generics.ListCreateAPIView):
         )
 
     def get_queryset(self):
-        roadmap_id = self.kwargs.get("roadmap_id")
+        roadmap_id = self.kwargs.get("roadmap_id") or self.request.query_params.get("roadmap")
         steps = Step.objects.filter(roadmap__in=visible_roadmaps(self.request))
 
         if roadmap_id is not None:
@@ -145,15 +146,15 @@ class LearningContentListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsInstructorOrAdmin]
 
     def get_queryset(self):
-        step_id = self.kwargs.get("step_id")
+        step_id = self.kwargs.get("step_id") or self.request.query_params.get("step")
         if step_id is None:
-            return LearningContent.objects.all().order_by("-created_at")
+            return LearningContent.objects.all().order_by("order", "created_at")
 
         contents = LearningContent.objects.filter(
             step_id=step_id,
             step__roadmap__in=visible_roadmaps(self.request),
         )
-        return contents.order_by("created_at")
+        return contents.order_by("order", "created_at")
 
     def perform_create(self, serializer):
         step_id = (
@@ -170,7 +171,12 @@ class LearningContentListCreateView(generics.ListCreateAPIView):
         except Step.DoesNotExist:
             raise ValidationError({"step": "Select an existing step."})
 
-        serializer.save(step=step)
+        order = self.request.data.get("order")
+        if not order:
+            max_order = LearningContent.objects.filter(step=step).aggregate(Max("order"))["order__max"] or 0
+            order = max_order + 1
+
+        serializer.save(step=step, order=order)
 
 
 class LearningContentDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -182,7 +188,7 @@ class LearningContentDetailView(generics.RetrieveUpdateDestroyAPIView):
         return [IsAuthenticatedOrReadOnly()]
 
     def get_queryset(self):
-        return LearningContent.objects.all().order_by("-created_at")
+        return LearningContent.objects.all().order_by("order", "created_at")
 
 
 class StudentProgressListCreateView(generics.ListCreateAPIView):

@@ -3,11 +3,20 @@
 
 {% block content %}
 <div class="container">
+    <!-- Top Action & Search Bar -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
         <div>
-            <span class="badge-glass-indigo mb-2 d-inline-block">Curated Learning Tracks</span>
-            <h2 class="fw-extrabold mb-1">Explore Developer Roadmaps</h2>
+            <span class="badge-glass-indigo mb-2 d-inline-block"><i class="fa-solid fa-route me-1"></i> Curated Learning Tracks</span>
+            <h2 class="fw-extrabold text-white mb-1">Explore Developer Roadmaps</h2>
             <p class="text-secondary mb-0">Follow step-by-step guides, unlock content, test your skills, and track your completion.</p>
+        </div>
+        <div class="glass-card p-2 bg-dark bg-opacity-60 border border-secondary border-opacity-25 shadow-sm" style="min-width: 320px;">
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-0 text-secondary">
+                    <i class="fa-solid fa-magnifying-glass text-indigo"></i>
+                </span>
+                <input type="text" id="roadmapSearchInput" class="form-control form-control-glass border-0 bg-transparent text-white" placeholder="Search roadmaps by title or topic..." onkeyup="filterRoadmaps(this.value)">
+            </div>
         </div>
     </div>
 
@@ -15,6 +24,19 @@
 </div>
 
 <script>
+    function filterRoadmaps(query) {
+        const q = (query || '').toLowerCase().trim();
+        const cards = document.querySelectorAll('#roadmapsGrid > div');
+        cards.forEach(card => {
+            const text = card.innerText.toLowerCase();
+            if (!q || text.includes(q)) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
     async function loadRoadmaps() {
         const container = document.getElementById('roadmapsGrid');
         try {
@@ -111,7 +133,7 @@
                                 <a href="/roadmaps/${roadmap.id}/" class="btn ${isCompleted ? 'btn-emerald' : 'btn-indigo'} btn-sm px-3 rounded-3">
                                     ${isCompleted ? '<i class="fa-solid fa-circle-check me-1"></i> Review Track' : 'View Roadmap <i class="fa-solid fa-arrow-right me-1"></i>'}
                                 </a>
-                                ${isInstructor ? '<a href="/instructor/" class="btn btn-outline-indigo btn-sm px-3 rounded-3"><i class="fa-solid fa-pen-to-square me-1"></i>Manage</a>' : ''}
+                                ${isInstructor ? '<a href="/instructor/?tab=manage" class="btn btn-outline-indigo btn-sm px-3 rounded-3"><i class="fa-solid fa-pen-to-square me-1"></i>Manage</a>' : ''}
                             </div>
                         </div>
                     </div>
